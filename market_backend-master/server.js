@@ -29,9 +29,56 @@ router.route('/farm').get((req, res) => {
             res.json(issues);
         } 
     })
+});
+
+router.route('/farm/:id').get((req, res) => {
+    Issue.findById(req.params.id, (err, issue) => {
+        if (err)
+            console.log(err);
+        else
+            res.json(issue);
+    })
 })
 
-app.get('/', (req, res) => res.send('Hello World!'));
+router.route('/farm/add').post((req, res) => {
+    let issue = new Issue(req.body);
+    issue.save()
+        .then(issue => {
+            res.status(200).json({'issue': 'Added successfully'})
+        })
+        .catch(err => {
+            res.status(400).send('Failed to create new record');
+        });
+});
+
+router.route('/farm/update/:id').post((req, res) => {
+    Issue.findById(req.params.id, (err, issue) => {
+        if (!issue)
+            return next(new Error('Could not load document'));
+        else {
+            issue.type = req.body.type;
+            issue.properties = req.body.properties;
+            issue.geometry = req.body.geometry;
+
+            issue.save().then(issue => {
+                res.json('Update done');
+            }).catch(err => {
+                res.status(400).send('Update failed');
+            });
+        }
+    });
+});
+
+router.route('/farm/delete/:id').get((req, res) => {
+    Issue.findByIdAndRemove({_id: req.params.id}, (err, issue) => {
+        if (err)
+            res.json(err);
+        else
+            res.json('Remove successfully');
+    })
+})
+
+//app.get('/', (req, res) => res.send('Hello World!'));
 
 routes(app);
 
